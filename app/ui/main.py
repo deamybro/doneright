@@ -88,9 +88,17 @@ html, body, [class*="css"] {
     background: #12151D;
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1.25rem;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+.telemetry-card {
+    background: #12151D;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    padding: 0.85rem 1.1rem;
+    margin-bottom: 0.6rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 .card-title {
     font-size: 1.05rem;
@@ -135,6 +143,21 @@ html, body, [class*="css"] {
     line-height: 1.5;
     color: #CBD5E1;
     margin-bottom: 1.25rem;
+}
+
+/* Custom Scrollbar for Containers */
+div[data-testid="stVerticalBlock"] > div[style*="overflow"]::-webkit-scrollbar {
+    width: 6px;
+}
+div[data-testid="stVerticalBlock"] > div[style*="overflow"]::-webkit-scrollbar-track {
+    background: #0B0D11;
+}
+div[data-testid="stVerticalBlock"] > div[style*="overflow"]::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.35);
+    border-radius: 4px;
+}
+div[data-testid="stVerticalBlock"] > div[style*="overflow"]::-webkit-scrollbar-thumb:hover {
+    background: rgba(212, 175, 55, 0.7);
 }
 
 /* Receipt Card */
@@ -342,12 +365,12 @@ else:
                 badge_color = "#F59E0B"
 
             st.markdown(f"""
-            <div class="executive-card">
+            <div class="telemetry-card">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-weight: 600; color: #FFFFFF;">{name}</span>
                     <span style="font-size: 0.75rem; font-weight: 700; color: {badge_color};">{status}</span>
                 </div>
-                <div style="font-size: 0.82rem; color: #CBD5E1; margin-top: 0.5rem; line-height: 1.4;">
+                <div style="font-size: 0.82rem; color: #CBD5E1; margin-top: 0.4rem; line-height: 1.4;">
                     {summary}
                 </div>
             </div>
@@ -393,23 +416,44 @@ else:
                     st.rerun()
 
         else:
-            st.markdown("#### Itemized Requirement Checklist")
-            st.markdown("""<div class="executive-card">""", unsafe_allow_html=True)
-            for req in state.requirements:
-                icon = "✓" if req.status == RequirementStatus.SATISFIED else ("⚠" if req.status == RequirementStatus.MISSING else "●")
-                color = "#34D399" if req.status == RequirementStatus.SATISFIED else ("#F59E0B" if req.status == RequirementStatus.MISSING else "#94A3B8")
-                st.markdown(f"""
-                <div style="padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.04);">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="font-weight: 500; color: #FFFFFF;">{req.id}: {req.description}</span>
-                        <span style="font-size: 0.75rem; font-weight: 700; color: {color};">{req.status.value}</span>
-                    </div>
-                    <div style="font-size: 0.78rem; color: #94A3B8; margin-top: 0.2rem;">
-                        Evidence: {req.evidence or req.evidence_needed}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
+            if state.generated_artifacts:
+                tab_check, tab_statement = st.tabs(["📋 Requirement Checklist", "📄 Prepared Statement"])
+                with tab_check:
+                    with st.container(height=430):
+                        for req in state.requirements:
+                            icon = "✓" if req.status == RequirementStatus.SATISFIED else ("⚠" if req.status == RequirementStatus.MISSING else "●")
+                            color = "#34D399" if req.status == RequirementStatus.SATISFIED else ("#F59E0B" if req.status == RequirementStatus.MISSING else "#94A3B8")
+                            st.markdown(f"""
+                            <div style="padding: 0.45rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                                    <span style="font-weight: 500; color: #FFFFFF; font-size: 0.88rem;">{req.id}: {req.description}</span>
+                                    <span style="font-size: 0.72rem; font-weight: 700; color: {color}; text-transform: uppercase;">{req.status.value}</span>
+                                </div>
+                                <div style="font-size: 0.76rem; color: #94A3B8; margin-top: 0.2rem;">
+                                    Evidence: {req.evidence or req.evidence_needed}
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                with tab_statement:
+                    with st.container(height=430):
+                        st.markdown(state.generated_artifacts[0].content)
+            else:
+                st.markdown("#### Itemized Requirement Checklist")
+                with st.container(height=430):
+                    for req in state.requirements:
+                        icon = "✓" if req.status == RequirementStatus.SATISFIED else ("⚠" if req.status == RequirementStatus.MISSING else "●")
+                        color = "#34D399" if req.status == RequirementStatus.SATISFIED else ("#F59E0B" if req.status == RequirementStatus.MISSING else "#94A3B8")
+                        st.markdown(f"""
+                        <div style="padding: 0.45rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                                <span style="font-weight: 500; color: #FFFFFF; font-size: 0.88rem;">{req.id}: {req.description}</span>
+                                <span style="font-size: 0.72rem; font-weight: 700; color: {color}; text-transform: uppercase;">{req.status.value}</span>
+                            </div>
+                            <div style="font-size: 0.76rem; color: #94A3B8; margin-top: 0.2rem;">
+                                Evidence: {req.evidence or req.evidence_needed}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
 
     # RIGHT COLUMN: Completion Receipt
     with col_right:
@@ -420,7 +464,7 @@ else:
             badge_text = receipt.status
 
             st.markdown(f"""
-            <div class="executive-card" style="border: 1px solid rgba(212, 175, 55, 0.3);">
+            <div class="executive-card" style="border: 1px solid rgba(212, 175, 55, 0.3); margin-bottom: 0.75rem;">
                 <div class="receipt-header">
                     <div class="receipt-title">COMPLETION RECEIPT</div>
                     <div class="receipt-meta">{receipt.opportunity_name} • {receipt.receipt_id}</div>
@@ -430,23 +474,28 @@ else:
                     <div class="gauge-label">Readiness Score</div>
                     <div style="margin-top: 0.4rem; font-size: 0.85rem; font-weight: 700; color: #34D399;">{badge_text}</div>
                 </div>
-                <div style="margin-bottom: 1rem;">
+                <div style="margin-bottom: 0.75rem;">
                     <div style="font-size: 0.8rem; font-weight: 600; color: #94A3B8; text-transform: uppercase;">Verified Audit Checks</div>
                     <div class="verified-row"><span class="check-icon">✓</span> Academic Eligibility Validated</div>
                     <div class="verified-row"><span class="check-icon">✓</span> CV & Transcript Matched</div>
                     <div class="verified-row"><span class="check-icon">✓</span> Statement of Purpose Grounded</div>
                     <div class="verified-row"><span class="check-icon">✓</span> Human Gate Decision Resolved</div>
                 </div>
-                <div style="font-size: 0.8rem; color: #CBD5E1; line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.75rem;">
+                <div style="font-size: 0.8rem; color: #CBD5E1; line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 0.6rem;">
                     {receipt.summary}
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-            # Generated Artifact Viewer
+            # Clean action buttons below receipt without pushing layout out of place
             if state.generated_artifacts:
-                with st.expander("📄 View Prepared Statement of Purpose"):
-                    st.markdown(state.generated_artifacts[0].content)
+                st.download_button(
+                    label="📥 Download Statement of Purpose (.md)",
+                    data=state.generated_artifacts[0].content,
+                    file_name="Statement_of_Purpose_Alex_Rivera.md",
+                    mime="text/markdown",
+                    use_container_width=True
+                )
 
             if st.button("Start New Opportunity", use_container_width=True):
                 st.session_state.workflow_state = None

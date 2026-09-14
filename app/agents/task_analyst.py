@@ -51,13 +51,13 @@ class TaskAnalystAgent:
     def analyze(self, raw_text: str, source_name: str = "announcement") -> Opportunity:
         """Invokes the Strands Task Analyst agent to parse raw opportunity text into an Opportunity model."""
         prompt = f"Analyze the following opportunity text and output the structured JSON:\n\n{raw_text}"
-        response = self.agent(prompt)
-        text = str(response)
+        try:
+            response = self.agent(prompt)
+            text = str(response)
 
-        # Extract JSON from response
-        json_match = re.search(r'\{.*\}', text, re.DOTALL)
-        if json_match:
-            try:
+            # Extract JSON from response
+            json_match = re.search(r'\{.*\}', text, re.DOTALL)
+            if json_match:
                 data = json.loads(json_match.group(0))
                 return Opportunity(
                     name=data.get("opportunity_name") or data.get("name") or "Opportunity Application",
@@ -72,8 +72,8 @@ class TaskAnalystAgent:
                     ambiguities=data.get("ambiguities", []),
                     source=source_name
                 )
-            except Exception:
-                pass
+        except Exception:
+            pass
 
         # Robust grounded fallback if model returned non-JSON format
         return Opportunity(

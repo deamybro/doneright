@@ -241,17 +241,27 @@ if st.session_state.workflow_state:
         state_label = f"Working: {curr.value}"
         state_class = "pill-active"
 
-st.markdown(f"""
-<div class="doneright-header">
-    <div>
-        <div class="doneright-logo">DoneRight</div>
-        <div class="doneright-tagline">Give it the task. DoneRight gets it done.</div>
+col_hdr_left, col_hdr_right = st.columns([3.5, 1], gap="small")
+with col_hdr_left:
+    st.markdown(f"""
+    <div class="doneright-header" style="margin-bottom: 0.75rem;">
+        <div>
+            <div class="doneright-logo">DoneRight</div>
+            <div class="doneright-tagline">Give it the task. DoneRight gets it done.</div>
+        </div>
+        <div>
+            <span class="status-pill {state_class}">{state_label}</span>
+        </div>
     </div>
-    <div>
-        <span class="status-pill {state_class}">{state_label}</span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
+
+with col_hdr_right:
+    st.write("")
+    if st.session_state.workflow_state is not None:
+        if st.button("🔄 Reset / New Task", use_container_width=True):
+            st.session_state.workflow_state = None
+            st.session_state.demo_loaded = False
+            st.rerun()
 
 # Load Demo Preset Helper
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
@@ -437,7 +447,7 @@ else:
                 with tab_statement:
                     with st.container(height=430):
                         st.markdown(state.generated_artifacts[0].content)
-            else:
+            elif state.requirements:
                 st.markdown("#### Itemized Requirement Checklist")
                 with st.container(height=430):
                     for req in state.requirements:
@@ -454,6 +464,14 @@ else:
                             </div>
                         </div>
                         """, unsafe_allow_html=True)
+            else:
+                st.markdown("#### Itemized Requirement Checklist")
+                st.markdown("""
+                <div class="executive-card" style="height: 430px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                    <div style="font-size: 1.1rem; font-weight: 600; color: #FFFFFF; margin-bottom: 0.5rem;">Analyzing Application Scope</div>
+                    <div style="font-size: 0.82rem; color: #94A3B8; max-width: 320px;">Strands Task Analyst is parsing guidelines, eligibility rules, and submission constraints...</div>
+                </div>
+                """, unsafe_allow_html=True)
 
     # RIGHT COLUMN: Completion Receipt
     with col_right:
